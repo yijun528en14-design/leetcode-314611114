@@ -9,6 +9,9 @@ public:
         int n = nums.size();
         if (n <= 1) return 0;
 
+        // 用 long long 存目前數值，避免合併後爆 int
+        vector<long long> a(nums.begin(), nums.end());
+
         vector<int> prev(n), nxt(n);
         vector<bool> alive(n, true);
 
@@ -20,25 +23,30 @@ public:
         auto bad = [&](int i, int j) -> int {
             if (i == -1 || j == -1) return 0;
             if (!alive[i] || !alive[j]) return 0;
-            return nums[i] > nums[j] ? 1 : 0;
+            return a[i] > a[j] ? 1 : 0;
         };
 
         int badCount = 0;
         for (int i = 0; i < n - 1; i++) {
-            if (nums[i] > nums[i + 1]) badCount++;
+            if (a[i] > a[i + 1]) badCount++;
         }
 
         if (badCount == 0) return 0;
 
-        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        // pairSum 改成 long long
+        priority_queue<pair<long long, int>,
+                       vector<pair<long long, int>>,
+                       greater<pair<long long, int>>> pq;
+
         for (int i = 0; i < n - 1; i++) {
-            pq.push({nums[i] + nums[i + 1], i});
+            pq.push({a[i] + a[i + 1], i});
         }
 
         int ops = 0;
 
         while (badCount > 0) {
-            int pairSum, i, j;
+            long long pairSum;
+            int i, j;
 
             while (true) {
                 pairSum = pq.top().first;
@@ -47,7 +55,7 @@ public:
 
                 j = nxt[i];
 
-                if (alive[i] && j != -1 && alive[j] && nums[i] + nums[j] == pairSum) {
+                if (alive[i] && j != -1 && alive[j] && a[i] + a[j] == pairSum) {
                     break;
                 }
             }
@@ -59,7 +67,8 @@ public:
             badCount -= bad(i, j);
             badCount -= bad(j, nj);
 
-            nums[i] = nums[i] + nums[j];
+            // 合併也用 long long
+            a[i] = a[i] + a[j];
             alive[j] = false;
             nxt[i] = nj;
             if (nj != -1) {
@@ -70,10 +79,10 @@ public:
             badCount += bad(i, nj);
 
             if (pi != -1 && alive[pi]) {
-                pq.push({nums[pi] + nums[i], pi});
+                pq.push({a[pi] + a[i], pi});
             }
             if (nj != -1 && alive[nj]) {
-                pq.push({nums[i] + nums[nj], i});
+                pq.push({a[i] + a[nj], i});
             }
 
             ops++;
